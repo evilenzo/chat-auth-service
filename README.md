@@ -1,4 +1,4 @@
-## Auth service for my [microservice chat](https://github.com/evilenzo/microservice-chat).
+## Auth service for my [microservice chat](https://github.com/evilenzo/microservice-chat)
 ### Capabilities
 - Basic server setup and databse connection
 - Runs
