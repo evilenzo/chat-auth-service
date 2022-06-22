@@ -9,7 +9,7 @@ RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
 
 # Add Maintainer Info
-LABEL maintainer="Evilenzo <evilenzo@protonmail.com>"
+LABEL maintainer="evilenzo <evilenzo@protonmail.com>"
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -24,7 +24,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -buildvcs=false -o main .
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
