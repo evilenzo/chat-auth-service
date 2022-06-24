@@ -1,9 +1,10 @@
 package server
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 )
 
 func checkAndRespond(w *http.ResponseWriter, method string, sub string, err error) bool {
@@ -19,28 +20,25 @@ func checkAndRespond(w *http.ResponseWriter, method string, sub string, err erro
 
 // REST API
 
-func (s *Server) NameExists(w http.ResponseWriter, r *http.Request) {
-	reqBody := struct {
+func (s *Server) NameExists(c *gin.Context) {
+	body := struct {
 		Name string `json:"name"`
 	}{}
-
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&reqBody)
-	hasErr := checkAndRespond(&w, "NameExists", "json parse error", err)
-	if hasErr {
-		return
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.String(http.StatusBadRequest, err.Error())
 	}
 
-	rawResponse := struct {
-		Exists bool `json:"exists"`
-	}{}
-	rawResponse.Exists, err = s.db.NameExists(reqBody.Name)
+	if exists, err := s.db.NameExists(body.Name); err != nil {
+		c.Status(http.StatusInternalServerError)
+		log.Error("Error during /name_exists response: ", err)
+	} else {
+		response := struct {
+			Exists bool `json:"exists"`
+		}{
+			Exists: exists,
+		}
 
-	serResponse, err := json.Marshal(rawResponse)
-	hasErr = checkAndRespond(&w, "GET NameExists", "json serialize error", err)
-
-	bytes, err := w.Write(serResponse)
-	log.Printf("Respond %v bytes for `NameExists`", bytes)
-	check("GET NameExists", "response writing", err)
+		c.JSON(http.StatusOK, response)
+		log.Trace("Successful /name_exists response")
+	}
 }

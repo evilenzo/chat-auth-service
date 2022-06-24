@@ -2,9 +2,10 @@ package db_operator
 
 import (
 	"errors"
-	"gorm.io/gorm"
-	"log"
 	model "main/db_operator/db_models"
+
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type DatabaseOperator struct {
@@ -22,8 +23,8 @@ func (dbo *DatabaseOperator) NameExists(name string) (bool, error) {
 		Where("name = ?", name).
 		Find(&exists).Error
 
-	if err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Printf("Internal database error: %v", err)
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Error("Internal database error: ", err)
 		return exists, err
 	}
 
