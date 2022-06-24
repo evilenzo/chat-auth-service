@@ -1,22 +1,13 @@
 package server
 
 import (
+	"errors"
+	dbe "main/db_operator/db_err"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 )
-
-func checkAndRespond(w *http.ResponseWriter, method string, sub string, err error) bool {
-	if err != nil {
-		log.Printf("Error in %v (%v): %v", method, sub, err)
-		http.Error(*w, sub, http.StatusInternalServerError)
-
-		return true
-	}
-
-	return false
-}
 
 // REST API
 
@@ -26,6 +17,7 @@ func (s *Server) NameExists(c *gin.Context) {
 	}{}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
 
 	if exists, err := s.db.NameExists(body.Name); err != nil {
@@ -40,5 +32,31 @@ func (s *Server) NameExists(c *gin.Context) {
 
 		c.JSON(http.StatusOK, response)
 		log.Trace("Successful /name_exists response")
+	}
+}
+
+func (s *Server) AuthApp(c *gin.Context) {
+	body := struct {
+		ID       uint64 `json:"id"`
+		Password string `json:"password"`
+	}{}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if token, err := s.db.AuthApp(body.ID, body.Password); err != nil {
+		if errors.Is(err, dbe.WrongPassword) {
+			c.String(http.StatusForbidden, "Wrong password")
+		} else {
+			c.Status(http.StatusInternalServerError)
+			log.Error("Error during /auth_app response: ", err)
+		}
+	} else {
+		response := struct {
+			Token string `json:"token"`
+		}{token}
+		c.JSON(http.StatusOK, &response)
+		log.Trace("Successful /auth_app response")
 	}
 }

@@ -19,6 +19,7 @@ func (s *Server) Run() {
 	r := gin.Default()
 
 	r.GET("/name_exists", s.NameExists)
+	r.GET("/auth_app", s.AuthApp)
 
 	err := r.Run()
 	if err != nil {

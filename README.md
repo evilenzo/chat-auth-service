@@ -2,4 +2,4 @@
 ### Capabilities
 - Basic server setup and database connection
 - Runs
-- Can serve one request type ATM (host:8080/name_exists) but serves it perfectly dealing with errors of any type
+- Can serve two request type ATM (/auth_app and/name_exists) but serves them perfectly dealing with errors of any type
