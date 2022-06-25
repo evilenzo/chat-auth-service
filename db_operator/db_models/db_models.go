@@ -1,12 +1,18 @@
 package db_models
 
+import "github.com/uptrace/bun"
+
 type User struct {
-	ID   uint64 `gorm:"column:user_id;primaryKey;autoIncrement"`
-	Name string `gorm:"column:name"`
-	Hash string `gorm:"column:hash"`
+	bun.BaseModel `bun:"table:users"`
+
+	ID   int64  `bun:"user_id,pk,autoincrement"`
+	Name string `bun:"name"`
+	Hash string `bun:"hash"`
 }
 
 type Client struct {
-	ID    uint64 `gorm:"column:user_id"`
-	Token string `gorm:"column:token"`
+	bun.BaseModel `bun:"table:clients"`
+
+	ID    int64  `bun:"user_id"`
+	Token string `bun:"token"`
 }

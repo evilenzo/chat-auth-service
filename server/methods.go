@@ -20,7 +20,7 @@ func (s *Server) NameExists(c *gin.Context) {
 		return
 	}
 
-	if exists, err := s.db.NameExists(body.Name); err != nil {
+	if exists, err := s.db.NameExists(c, body.Name); err != nil {
 		c.Status(http.StatusInternalServerError)
 		log.Error("Error during /name_exists response: ", err)
 	} else {
@@ -37,7 +37,7 @@ func (s *Server) NameExists(c *gin.Context) {
 
 func (s *Server) AuthApp(c *gin.Context) {
 	body := struct {
-		ID       uint64 `json:"id"`
+		ID       int64  `json:"id"`
 		Password string `json:"password"`
 	}{}
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -45,9 +45,11 @@ func (s *Server) AuthApp(c *gin.Context) {
 		return
 	}
 
-	if token, err := s.db.AuthApp(body.ID, body.Password); err != nil {
+	if token, err := s.db.AuthApp(c, body.ID, body.Password); err != nil {
 		if errors.Is(err, dbe.WrongPassword) {
 			c.String(http.StatusForbidden, "Wrong password")
+		} else if errors.Is(err, dbe.RecordNotFound) {
+			c.String(http.StatusForbidden, "User with this id not found")
 		} else {
 			c.Status(http.StatusInternalServerError)
 			log.Error("Error during /auth_app response: ", err)
